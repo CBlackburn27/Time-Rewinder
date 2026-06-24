@@ -42,17 +42,17 @@ def save_state(): # save the current state of the player (position and velocity)
     })
 
 
-def load_state():
+def load_state(): # load the last saved state of the player from history
     global vel
-    if history:
-        state = history.pop()
-        player.topleft = state["pos"]
-        vel.x, vel.y = state["vel"]
+    if history: # check if there is any state in history
+        state = history.pop() # get the last state from history
+        player.topleft = state["pos"] # set the player's position to the saved position
+        vel.x, vel.y = state["vel"] # set the player's velocity to the saved velocity
 
 
-def handle_input(dt):
-    keys = pygame.key.get_pressed()
-    vel.x = 0
+def handle_input(dt): # handle player input for movement and jumping
+    keys = pygame.key.get_pressed() # get the current state of all keyboard keys
+    vel.x = 0 # reset horizontal velocity each frame
 
     if keys[pygame.K_LEFT]:
         vel.x = -MOVE_SPEED
@@ -65,12 +65,12 @@ def handle_input(dt):
             vel.y = JUMP_FORCE
 
 
-def apply_physics(dt):
+def apply_physics(dt): # apply gravity and move the player based on velocity and time delta
     # Gravity
     vel.y += GRAVITY * dt
 
     # Move
-    player.x += int(vel.x * dt)
+    player.x += int(vel.x * dt) # move the player horizontally based on velocity and time delta
     player.y += int(vel.y * dt)
 
     # Collision with platform
@@ -94,22 +94,22 @@ def draw():
 
 # Game loop
 while True:
-    dt = clock.tick(60) / 1000
+    dt = clock.tick(60) / 1000 # get the time delta in seconds (1/60th of a second per frame at 60 FPS)
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
-            sys.exit()
+            sys.exit() # exit the program if the window is closed
 
     keys = pygame.key.get_pressed()
     rewinding = keys[pygame.K_r]
 
-    if rewinding:
+    if rewinding: # if rewinding, load the previous state from history
         load_state()
     else:
-        handle_input(dt)
-        apply_physics(dt)
-        save_state()
+        handle_input(dt) # handle player input for movement and jumping
+        apply_physics(dt) # apply gravity and move the player based on velocity and time delta
+        save_state()# save the current state of the player
 
     draw()
 
