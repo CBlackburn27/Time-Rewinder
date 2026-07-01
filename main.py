@@ -1,9 +1,17 @@
 import pygame
+<<<<<<< HEAD
 from collections import deque #imports the deque (double-ended queue) data structure.
 import sys
 
 
 pygame.init() 
+=======
+from collections import deque
+import sys
+
+
+pygame.init() #always need to initialise pygame
+>>>>>>> d64982b73cc8ff1793f76f92dd348319e488e92c
 
 screen = pygame.display.set_mode((800, 600)) #set the size of the window
 pygame.display.set_caption("Time Rewinder") #set the title of the window
@@ -116,3 +124,7 @@ while True:
 
 
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> d64982b73cc8ff1793f76f92dd348319e488e92c
