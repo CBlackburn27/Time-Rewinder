@@ -1,5 +1,5 @@
 import pygame
-from collections import deque #imports the deque (double-ended queue) data structure.
+from collections import deque #imports the deque (circular queue) data structure.
 import sys
 
 
@@ -18,7 +18,7 @@ RED = (255, 80, 80)
 
 # Player
 player = pygame.Rect(100, 300, 30, 40) # create a rectangle to represent the player, parameters represent hitbox
-vel = pygame.Vector2(0, 0) # create a 2d vector to represent the player's velocity
+vel = pygame.Vector2(0, 0) # create a 2d vector to represent the player's velocity x and y. Vector keeps it organised and allows for easy manipulation of the velocity in both directions.
 
 # Physics
 GRAVITY = 1200
@@ -94,7 +94,7 @@ def draw():
 
 # Game loop
 while True:
-    dt = clock.tick(60) / 1000 # get the time delta in seconds (1/60th of a second per frame at 60 FPS)
+    dt = clock.tick(60) / 1000 # player will move at the same speed regardless of frame rate 
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
