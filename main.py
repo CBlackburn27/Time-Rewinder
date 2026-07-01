@@ -1,17 +1,9 @@
 import pygame
-<<<<<<< HEAD
 from collections import deque #imports the deque (double-ended queue) data structure.
 import sys
 
 
 pygame.init() 
-=======
-from collections import deque
-import sys
-
-
-pygame.init() #always need to initialise pygame
->>>>>>> d64982b73cc8ff1793f76f92dd348319e488e92c
 
 screen = pygame.display.set_mode((800, 600)) #set the size of the window
 pygame.display.set_caption("Time Rewinder") #set the title of the window
@@ -25,8 +17,8 @@ GREEN = (50, 200, 100)
 RED = (255, 80, 80)
 
 # Player
-player = pygame.Rect(100, 300, 30, 40) # create a rectangle to represent the player
-vel = pygame.Vector2(0, 0) # create a vector to represent the player's velocity
+player = pygame.Rect(100, 300, 30, 40) # create a rectangle to represent the player, parameters represent hitbox
+vel = pygame.Vector2(0, 0) # create a 2d vector to represent the player's velocity
 
 # Physics
 GRAVITY = 1200
@@ -37,10 +29,10 @@ JUMP_FORCE = -500
 platform = pygame.Rect(0, 400, 800, 50) # create a rectangle to represent the ground platform
 
 # Time rewind history
-MAX_HISTORY = 300  # ~5 seconds at 60 FPS 
-history = deque(maxlen=MAX_HISTORY) # create a deque to store the player's state history
+MAX_HISTORY = 300  # stores 300 frames of history which is equivalent to 5 seconds at 60 FPS
+history = deque(maxlen=MAX_HISTORY) # create a deque to store the player's state history removing the oldest state when the max length is reached
 
-rewinding = False # flag to indicate if the player is rewinding time
+rewinding = False # flag to indicate if the r key is being pressed
 
 
 def save_state(): # save the current state of the player (position and velocity) 
@@ -52,7 +44,7 @@ def save_state(): # save the current state of the player (position and velocity)
 
 def load_state(): # load the last saved state of the player from history
     global vel
-    if history: # check if there is any state in history
+    if len(history)>0: # check if there is any state in history
         state = history.pop() # get the last state from history
         player.topleft = state["pos"] # set the player's position to the saved position
         vel.x, vel.y = state["vel"] # set the player's velocity to the saved velocity
@@ -83,7 +75,7 @@ def apply_physics(dt): # apply gravity and move the player based on velocity and
 
     # Collision with platform
     if player.colliderect(platform) and vel.y > 0:
-        player.bottom = platform.top
+        player.bottom = platform.top #stops infinite jumps
         vel.y = 0
 
 
@@ -124,7 +116,3 @@ while True:
 
 
 
-<<<<<<< HEAD
-=======
-
->>>>>>> d64982b73cc8ff1793f76f92dd348319e488e92c
