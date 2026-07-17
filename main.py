@@ -28,6 +28,9 @@ class Player():
         self.image = pygame.transform.scale(self.image, (64, 64))
         self.vel = pygame.Vector2(0,0)
         self.rect = self.image.get_rect(topleft=(x, y))
+
+    def draw(self, screen):
+        screen.blit(self.image, self.rect)
         
 
 
@@ -51,20 +54,19 @@ class Player():
 platform = pygame.Rect(0, 550, 800, 50)
 
 
+player = Player(100, 100) 
 
 
-
-
-
-
-def draw(self, screen):
+def draw():
     screen.fill(white)
 
     pygame.draw.rect(screen, grey, platform)
-    screen.blit(self.image, self.rect)
-
+    screen.blit(player.image, player.rect)
 
     pygame.display.flip()
+
+
+
 
 
 
@@ -74,14 +76,21 @@ def draw(self, screen):
 while True:
     delta_time = clock.tick(60) / 1000
 
+    # Handle events
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
-            
-        elif event.type == pygame.VIDEORESIZE:
-            screen = pygame.display.set_mode((event.w, event.h), pygame.RESIZABLE)
-            
-            keys = pygame.key.get_pressed()
 
-        draw()
+        elif event.type == pygame.VIDEORESIZE:
+            screen = pygame.display.set_mode(
+                (event.w, event.h), pygame.RESIZABLE
+            )
+
+    # Update the player every frame
+    player.handle_input(delta_time)
+
+    # Draw everything every frame
+
+    draw()
+        
