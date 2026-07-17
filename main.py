@@ -114,5 +114,61 @@ while True:
     draw()
 
 
+import pygame
+import sys 
 
+pygame.init()
+
+screen = pygame.display.set_mode((800, 600), pygame.RESIZABLE)
+pygame.display.set_caption("Rewind Run")
+
+clock = pygame.time.Clock()
+
+#colours
+
+white = (255, 255, 255)
+blue = (50, 100, 255)
+grey = (119, 123, 126)
+
+
+
+#physics
+gravity = 1200
+movement_speed = 300
+jumping_force = -500
+
+player = pygame.Rect(100, 300, 30, 40)
+
+
+platform = pygame.Rect(0, 550, 800, 50)
+
+
+
+def draw():
+    screen.fill(white)
+
+    pygame.draw.rect(screen, grey, platform) 
+
+
+    pygame.display.flip()
+
+
+
+
+#game loop
+
+while True:
+    delta_time = clock.tick(60) / 1000
+
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+            
+        elif event.type == pygame.VIDEORESIZE:
+            screen = pygame.display.set_mode((event.w, event.h), pygame.RESIZABLE)
+            
+            keys = pygame.key.get_pressed()
+
+        draw()
 
