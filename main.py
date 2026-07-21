@@ -34,8 +34,19 @@ world_data = [
 [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
 [0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0],
 [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-[2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
 ]
+
 
 
 class World:
@@ -44,23 +55,31 @@ class World:
 
         #load images
 
-        industrial_1_tile = pygame.image.load('industrial_1_tile.png')
+        industrial_tile = pygame.image.load('industrial_tile.png')
 
         row_count = 0
 
         for row in data:
+            col_count = 0
 
-           col_count = 0
+            for tile in row:
 
-        for tile in row:
+                if tile == 1:
+                    img = pygame.transform.scale(industrial_tile, (tile_size, tile_size)) #scales the  image to fit the tile size
+                    img_rect = img.get_rect() #gets the rectangle of the image for positioning
+                    img_rect.x = col_count * tile_size 
+                    img_rect.y = row_count * tile_size
+                    tile = (img, img_rect) 
+                    self.tile_list.append(tile) #adds the tile to the tile list
 
-            if tile == 1:
-                img = pygame.transform.scale(industrial_1_tile, (tile_size, tile_size)) #scales the  image to fit the tile size
-                img_rect = img.get_rect() #gets the rectangle of the image for positioning
-                img_rect.x = col_count * tile_size 
-                img_rect.y = row_count * tile_size
-                tile = (img, img_rect) 
-                self.tile_list.append(tile) #adds the tile to the tile list
+                col_count += 1
+
+            row_count += 1
+
+    def draw(self, screen):
+
+        for tile in self.tile_list:
+            screen.blit(tile[0], tile[1])
                 
             
     
@@ -83,6 +102,7 @@ class Player:
         self.__history = deque(maxlen=300)
         self.vel = pygame.Vector2() # create a vector to represent the player's velocity
         self.rect = self.image.get_rect(topleft=(x, y)) #places image as a rectangle in pygame
+        self.ground = False
 
 
     def handle_input(self):
@@ -95,23 +115,47 @@ class Player:
         if keys[pygame.K_RIGHT]:
             self.vel.x = movement_speed
 
-        if keys[pygame.K_SPACE]:
-        # Only jump if on ground
-            if self.rect.bottom >= platform.top and self.rect.bottom <= platform.top + 10:
-                self.vel.y = jump_force
+        if keys[pygame.K_SPACE] and self.ground:
+            self.vel.y = jump_force
+        
+            
 
-    def apply_physics(self, dt, platform): # apply physics to the player (gravity and movement)
-    # gravity
-        self.vel.y += gravity * dt
+    def apply_physics(self, dt, world):
+        self.ground = False
+        self.vel.y += gravity * dt  # apply physics to the player (gravity and movement)
+   
 
     # movement
         self.rect.x += int(self.vel.x * dt)
-        self.rect.y += int(self.vel.y * dt)
+        
 
     # collision with platform
-        if self.rect.colliderect(platform) and self.vel.y > 0:
-            self.rect.bottom = platform.top
-            self.vel.y = 0
+        for tile in world.tile_list:
+
+            if self.rect.colliderect(tile[1]):
+                if self.vel.x > 0:
+                    self.rect.right = tile[1].left
+
+                elif self.vel.x < 0:
+                    self.rect.left = tile[1].right
+
+        self.rect.y += int(self.vel.y * dt)
+
+        for tile in world.tile_list:
+            if self.rect.colliderect(tile[1]):
+
+                if self.vel.y > 0:
+                    self.rect.bottom = tile[1].top
+                    self.vel.y = 0
+                    self.ground = True
+
+                elif self.vel.y < 0:
+
+                    self.rect.top = tile[1].bottom
+                    self.vel.y = 0
+                
+                
+   
 
     def save_state(self): # save the current state of the player (position and velocity)
         self.__history.append({
@@ -132,11 +176,11 @@ class Player:
 
 
 # ground platform object
-platform = pygame.Rect(0, 400, 800, 50)
+world = World(world_data)
 
 
 #player object
-player = Player(100, 300)
+player = Player(100, 512)
 
 rewinding = False
 
@@ -144,7 +188,7 @@ rewinding = False
 
 def draw():
     screen.fill(white)
-    pygame.draw.rect(screen, grey, platform)
+    world.draw(screen)
     player.draw(screen)
     pygame.display.flip()
 
@@ -171,10 +215,21 @@ while True:
         player.load_state()
     else:
         player.handle_input()
-        player.apply_physics(dt, platform)
+        player.apply_physics(dt, world)
         player.save_state()
 
     draw()
+
+
+
+
+
+
+
+
+
+
+
 
 
 
