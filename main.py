@@ -32,19 +32,19 @@ world_data = [
 [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
 [0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
 [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-[0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
 [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
 [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,1,1,1],
 [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+[6,5,7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[8,2,3,0,0,0,0,0,0,6,5,7,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[8,2,3,5,5,7,0,0,0,8,2,3,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[8,2,3,2,2,3,0,0,0,8,2,3,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[8,2,3,2,2,3,9,9,9,8,2,3,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[8,2,3,2,2,3,0,0,0,8,2,3,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[8,2,3,2,2,3,0,0,0,8,2,3,2,2,2,2,2,2,2,2,2,2,2,2,2],
 ]
 
 
@@ -56,6 +56,15 @@ class World:
         #load images
 
         industrial_tile = pygame.image.load('industrial_tile.png')
+        dirt_1 = pygame.image.load('dirt_1.png')
+        dirt_right_corner = pygame.image.load('dirt_right_corner.png')
+        industrial_tile_2 = pygame.image.load('industrial_tile_2.png')
+        industrial_tile_3 = pygame.image.load('industrial_tile_3.png')
+        industrial_right_corner_2 = pygame.image.load('industrial_right_corner_2.png')
+        industrial_left_corner_2 = pygame.image.load('industrial_left_corner_2.png')
+        dirt_border = pygame.image.load('dirt_border.png')
+        green_liquid = pygame.image.load('green_liquid.png')
+        
 
         row_count = 0
 
@@ -71,6 +80,72 @@ class World:
                     img_rect.y = row_count * tile_size
                     tile = (img, img_rect) 
                     self.tile_list.append(tile) #adds the tile to the tile list
+
+                if tile == 2:
+                    img = pygame.transform.scale(dirt_1, (tile_size, tile_size)) 
+                    img_rect = img.get_rect() 
+                    img_rect.x = col_count * tile_size 
+                    img_rect.y = row_count * tile_size
+                    tile = (img, img_rect) 
+                    self.tile_list.append(tile)
+
+                if tile == 3:
+                    img = pygame.transform.scale(dirt_right_corner, (tile_size, tile_size)) 
+                    img_rect = img.get_rect() 
+                    img_rect.x = col_count * tile_size 
+                    img_rect.y = row_count * tile_size
+                    tile = (img, img_rect) 
+                    self.tile_list.append(tile)
+
+                if tile == 4:
+                    img = pygame.transform.scale(industrial_tile_2, (tile_size, tile_size)) 
+                    img_rect = img.get_rect() 
+                    img_rect.x = col_count * tile_size 
+                    img_rect.y = row_count * tile_size
+                    tile = (img, img_rect) 
+                    self.tile_list.append(tile)
+
+                if tile == 5:
+                    img = pygame.transform.scale(industrial_tile_3, (tile_size, tile_size)) 
+                    img_rect = img.get_rect() 
+                    img_rect.x = col_count * tile_size 
+                    img_rect.y = row_count * tile_size
+                    tile = (img, img_rect) 
+                    self.tile_list.append(tile)
+                    
+                if tile == 6:
+                    img = pygame.transform.scale(industrial_left_corner_2, (tile_size, tile_size)) 
+                    img_rect = img.get_rect() 
+                    img_rect.x = col_count * tile_size 
+                    img_rect.y = row_count * tile_size
+                    tile = (img, img_rect) 
+                    self.tile_list.append(tile)
+                    
+                if tile == 7:
+                    img = pygame.transform.scale(industrial_right_corner_2, (tile_size, tile_size)) 
+                    img_rect = img.get_rect() 
+                    img_rect.x = col_count * tile_size 
+                    img_rect.y = row_count * tile_size
+                    tile = (img, img_rect) 
+                    self.tile_list.append(tile)
+
+                if tile == 8:
+                    img = pygame.transform.scale(dirt_border, (tile_size, tile_size)) 
+                    img_rect = img.get_rect() 
+                    img_rect.x = col_count * tile_size 
+                    img_rect.y = row_count * tile_size
+                    tile = (img, img_rect) 
+                    self.tile_list.append(tile)
+
+                if tile == 9:
+                    img = pygame.transform.scale(green_liquid, (tile_size, tile_size)) 
+                    img_rect = img.get_rect() 
+                    img_rect.x = col_count * tile_size 
+                    img_rect.y = row_count * tile_size
+                    tile = (img, img_rect) 
+                    self.tile_list.append(tile)
+
+                    
 
                 col_count += 1
 
@@ -219,6 +294,13 @@ while True:
         player.save_state()
 
     draw()
+
+
+
+
+
+
+
 
 
 
