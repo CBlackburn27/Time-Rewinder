@@ -1,23 +1,34 @@
 import pygame
 import sys # import sys module to handle system exit
 from collections import deque # import deque to store the player's state history
+from enum import Enum
 
 
 pygame.init() 
 
-screen = pygame.display.set_mode((800, 600), pygame.RESIZABLE) 
+screen = pygame.display.set_mode((1280, 729), pygame.RESIZABLE) 
 pygame.display.set_caption("Rewind Run") 
 
 clock = pygame.time.Clock() #create a clock object to control the frame rate
 
-# Colors
+
+
+#loading background 
+
+level_1_background = pygame.image.load('level_1_background.png')
+level_1_background = pygame.transform.scale(level_1_background, (1280, 729))
+rewind_bar_frame = pygame.image.load('rewind_bar_frame.png')
+
+
+
+# colors
 white = (255, 255, 255)
 blue = (50, 100, 255)
 grey = (119, 123, 126)
 red = (255, 80, 80)
 
 
-# Physics
+# physics
 gravity = 1200
 movement_speed = 300
 jump_force = -500
@@ -27,27 +38,48 @@ tile_size = 32
 
 
 world_data = [
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,12,11,11,13,0,0,0,0,0,0,0],
+[0,15,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,14,14,14,0,0,0,0,0,16,0,0,0,0,0,0,0,0,0],
+[12,11,11,11,11,13,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,16,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,14,14,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,16,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,12,11,11,11,13,0,0,0,0,0,0,0,0,0,0,0,0,0,0,16,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,16,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,5,7,0,0,0,0,0,0,6,5,5,5,7,0,0,0,0,0,0],
 [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-[0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-[0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-[0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,1,1,1],
-[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-[6,5,7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[6,5,7,0,0,0,0,0,0,0,0,0,0,0,0,6,5,7,0,0,0,0,0,0,0],
 [8,2,3,0,0,0,0,0,0,6,5,7,0,0,0,0,0,0,0,0,0,0,0,0,0],
 [8,2,3,5,5,7,0,0,0,8,2,3,0,0,0,0,0,0,0,0,0,0,0,0,0],
 [8,2,3,2,2,3,0,0,0,8,2,3,0,0,0,0,0,0,0,0,0,0,0,0,0],
 [8,2,3,2,2,3,9,9,9,8,2,3,0,0,0,0,0,0,0,0,0,0,0,0,0],
-[8,2,3,2,2,3,0,0,0,8,2,3,0,0,0,0,0,0,0,0,0,0,0,0,0],
-[8,2,3,2,2,3,0,0,0,8,2,3,2,2,2,2,2,2,2,2,2,2,2,2,2],
+[8,2,3,2,2,3,10,10,10,8,2,3,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[6,5,5,5,7,3,10,10,10,8,2,3,2,5,5,5,5,5,5,5,5,5,5,5,5,5,9,9,9,9,5,5,5,5,5,5,5,5,5,7],
+[8,2,3,2,2,3,10,10,10,8,2,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,10,10,10,10,0,0,0,0,0,0,0,0],
+[8,2,3,2,2,3,10,10,10,8,2,3,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[8,2,3,2,2,3,10,10,10,8,2,3,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[8,2,3,2,2,3,10,10,10,8,2,3,0,0,0,0,0,0,0,0,0,0,0,0,0],
 ]
 
-
+class Tile(Enum):
+    empty = 0
+    industrial_tile = 1
+    dirt = 2
+    dirt_right_corner = 3
+    industrial_tile_2 = 4
+    industrial_tile_3 = 5
+    industrial_left_corner = 6
+    industrial_right_corner = 7
+    dirt_border = 8
+    green_liquid = 9
+    green_liquid_2 = 10
+    orange_platform_flat = 11
+    orange_platform_left = 12
+    orange_platform_right = 13
+    platform_block = 14
+    door = 15
+    flat_ladder = 16
 
 class World:
     def __init__(self, data):
@@ -64,6 +96,16 @@ class World:
         industrial_left_corner_2 = pygame.image.load('industrial_left_corner_2.png')
         dirt_border = pygame.image.load('dirt_border.png')
         green_liquid = pygame.image.load('green_liquid.png')
+        green_liquid_2 = pygame.image.load('green_liquid_2.png')
+        orange_platform_flat = pygame.image.load('orange_platform_flat.png')
+        orange_platform_left = pygame.image.load('orange_platform_left.png')
+        orange_platform_right = pygame.image.load('orange_platform_right.png')
+        platform_block = pygame.image.load('platform_block.png')
+        door = pygame.image.load('door.png')
+        flat_ladder = pygame.image.load('flat_ladder.png')
+        
+
+
         
 
         row_count = 0
@@ -73,7 +115,7 @@ class World:
 
             for tile in row:
 
-                if tile == 1:
+                if tile == Tile.industrial_tile.value: # links to Tile class 
                     img = pygame.transform.scale(industrial_tile, (tile_size, tile_size)) #scales the  image to fit the tile size
                     img_rect = img.get_rect() #gets the rectangle of the image for positioning
                     img_rect.x = col_count * tile_size 
@@ -81,7 +123,7 @@ class World:
                     tile = (img, img_rect) 
                     self.tile_list.append(tile) #adds the tile to the tile list
 
-                if tile == 2:
+                if tile == Tile.dirt.value:
                     img = pygame.transform.scale(dirt_1, (tile_size, tile_size)) 
                     img_rect = img.get_rect() 
                     img_rect.x = col_count * tile_size 
@@ -89,7 +131,7 @@ class World:
                     tile = (img, img_rect) 
                     self.tile_list.append(tile)
 
-                if tile == 3:
+                if tile == Tile.dirt_right_corner.value:
                     img = pygame.transform.scale(dirt_right_corner, (tile_size, tile_size)) 
                     img_rect = img.get_rect() 
                     img_rect.x = col_count * tile_size 
@@ -97,7 +139,7 @@ class World:
                     tile = (img, img_rect) 
                     self.tile_list.append(tile)
 
-                if tile == 4:
+                if tile == Tile.industrial_tile_2.value:
                     img = pygame.transform.scale(industrial_tile_2, (tile_size, tile_size)) 
                     img_rect = img.get_rect() 
                     img_rect.x = col_count * tile_size 
@@ -105,7 +147,7 @@ class World:
                     tile = (img, img_rect) 
                     self.tile_list.append(tile)
 
-                if tile == 5:
+                if tile == Tile.industrial_tile_3.value:
                     img = pygame.transform.scale(industrial_tile_3, (tile_size, tile_size)) 
                     img_rect = img.get_rect() 
                     img_rect.x = col_count * tile_size 
@@ -113,7 +155,7 @@ class World:
                     tile = (img, img_rect) 
                     self.tile_list.append(tile)
                     
-                if tile == 6:
+                if tile == Tile.industrial_left_corner.value:
                     img = pygame.transform.scale(industrial_left_corner_2, (tile_size, tile_size)) 
                     img_rect = img.get_rect() 
                     img_rect.x = col_count * tile_size 
@@ -121,7 +163,7 @@ class World:
                     tile = (img, img_rect) 
                     self.tile_list.append(tile)
                     
-                if tile == 7:
+                if tile == Tile.industrial_right_corner.value:
                     img = pygame.transform.scale(industrial_right_corner_2, (tile_size, tile_size)) 
                     img_rect = img.get_rect() 
                     img_rect.x = col_count * tile_size 
@@ -129,7 +171,7 @@ class World:
                     tile = (img, img_rect) 
                     self.tile_list.append(tile)
 
-                if tile == 8:
+                if tile == Tile.dirt_border.value:
                     img = pygame.transform.scale(dirt_border, (tile_size, tile_size)) 
                     img_rect = img.get_rect() 
                     img_rect.x = col_count * tile_size 
@@ -137,8 +179,64 @@ class World:
                     tile = (img, img_rect) 
                     self.tile_list.append(tile)
 
-                if tile == 9:
+                if tile == Tile.green_liquid.value:
                     img = pygame.transform.scale(green_liquid, (tile_size, tile_size)) 
+                    img_rect = img.get_rect() 
+                    img_rect.x = col_count * tile_size 
+                    img_rect.y = row_count * tile_size
+                    tile = (img, img_rect) 
+                    self.tile_list.append(tile)
+
+                if tile == Tile.green_liquid_2.value:
+                    img = pygame.transform.scale(green_liquid_2, (tile_size, tile_size)) 
+                    img_rect = img.get_rect() 
+                    img_rect.x = col_count * tile_size 
+                    img_rect.y = row_count * tile_size
+                    tile = (img, img_rect) 
+                    self.tile_list.append(tile)
+
+                if tile == Tile.orange_platform_flat.value:
+                    img = pygame.transform.scale(orange_platform_flat, (tile_size, tile_size)) 
+                    img_rect = img.get_rect() 
+                    img_rect.x = col_count * tile_size 
+                    img_rect.y = row_count * tile_size
+                    tile = (img, img_rect) 
+                    self.tile_list.append(tile)
+
+                if tile == Tile.orange_platform_left.value:
+                    img = pygame.transform.scale(orange_platform_left, (tile_size, tile_size)) 
+                    img_rect = img.get_rect() 
+                    img_rect.x = col_count * tile_size 
+                    img_rect.y = row_count * tile_size
+                    tile = (img, img_rect) 
+                    self.tile_list.append(tile)
+
+                if tile == Tile.orange_platform_right.value:
+                    img = pygame.transform.scale(orange_platform_right, (tile_size, tile_size)) 
+                    img_rect = img.get_rect() 
+                    img_rect.x = col_count * tile_size 
+                    img_rect.y = row_count * tile_size
+                    tile = (img, img_rect) 
+                    self.tile_list.append(tile)
+
+                if tile == Tile.platform_block.value:
+                    img = pygame.transform.scale(platform_block, (tile_size, tile_size)) 
+                    img_rect = img.get_rect() 
+                    img_rect.x = col_count * tile_size 
+                    img_rect.y = row_count * tile_size
+                    tile = (img, img_rect) 
+                    self.tile_list.append(tile)
+
+                if tile == Tile.door.value:
+                    img = pygame.transform.scale(door, (tile_size, tile_size)) 
+                    img_rect = img.get_rect() 
+                    img_rect.x = col_count * tile_size 
+                    img_rect.y = row_count * tile_size
+                    tile = (img, img_rect) 
+                    self.tile_list.append(tile)
+
+                if tile == Tile.flat_ladder.value:
+                    img = pygame.transform.scale(flat_ladder, (tile_size, tile_size)) 
                     img_rect = img.get_rect() 
                     img_rect.x = col_count * tile_size 
                     img_rect.y = row_count * tile_size
@@ -160,8 +258,28 @@ class World:
     
 
 
+class Puzzle_Object:
+    pass
 
 
+
+class Key(Puzzle_Object):
+    pass
+
+
+class Lever(Puzzle_Object):
+    pass
+
+
+
+
+class Door(Puzzle_Object):
+    pass
+
+
+    
+class Pressure_Pad(Puzzle_Object):
+    pass
 
 
 
@@ -174,10 +292,16 @@ class Player:
         #loading player sprite
         self.image = pygame.image.load("sci-fi player_idle.png")
         self.image = pygame.transform.scale(self.image, (32, 32))
-        self.__history = deque(maxlen=300)
+        self.__history = deque(maxlen=300) #size of queue 
         self.vel = pygame.Vector2() # create a vector to represent the player's velocity
         self.rect = self.image.get_rect(topleft=(x, y)) #places image as a rectangle in pygame
         self.ground = False
+        self.max_rewind_energy = 100 #max rewind energy on the metre
+        self.rewind_cost = 20
+        self.recharge = 10
+        self.current_time_energy = self.max_rewind_energy
+        
+        
 
 
     def handle_input(self):
@@ -231,7 +355,7 @@ class Player:
                 
                 
    
-
+#rewinding
     def save_state(self): # save the current state of the player (position and velocity)
         self.__history.append({
             "pos": self.rect.topleft, # save the top-left position of the player
@@ -259,13 +383,33 @@ player = Player(100, 512)
 
 rewinding = False
 
+def draw_rewind_bar(screen, player):
+    bar_x = 20 #sets position to top left
+    bar_y = 20
 
+    bar_width = 84 #width of blue bar
+    bar_height = 14 #length of blue bar
+
+    width = int((player.current_time_energy / player.max_rewind_energy) * bar_width) #calcs how full rewind bar should be by dividing current energy with max
+
+    screen.blit(rewind_bar_frame, (bar_x, bar_y))
+
+    pygame.draw.rect(
+        screen,
+        (0,255,255), #cyan colour
+        (bar_x + 12, bar_y + 8, width, bar_height)
+    )
+
+    
+    
 
 def draw():
-    screen.fill(white)
+    screen.blit(level_1_background, (0, 0))
     world.draw(screen)
     player.draw(screen)
+    draw_rewind_bar(screen, player)
     pygame.display.flip()
+    
 
 
 
@@ -284,19 +428,31 @@ while True:
             )
 
     keys = pygame.key.get_pressed()
-    rewinding = keys[pygame.K_r]
+    rewinding = keys[pygame.K_r] and player.current_time_energy > 10
+
+
+    
+        
 
     if rewinding:
         player.load_state()
+
+        player.current_time_energy -= player.rewind_cost * dt # current energy - rewind cost after each rewind
+
+        player.current_time_energy = max(0, min(player.current_time_energy, player.max_rewind_energy))
+
+        print(round(player.current_time_energy, 1))#TEST 
+
+        if player.current_time_energy <= 10:#'TEST
+                print("Out of energy!") #TEST
+
+        
     else:
         player.handle_input()
         player.apply_physics(dt, world)
         player.save_state()
 
     draw()
-
-
-
 
 
 
