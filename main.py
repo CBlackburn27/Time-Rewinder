@@ -20,6 +20,12 @@ level_1_background = pygame.transform.scale(level_1_background, (1280, 729))
 rewind_bar_frame = pygame.image.load('rewind_bar_frame.png')
 
 
+#loading ui
+button_img = pygame.image.load("button.png")
+button_img = pygame.transform.scale(button_img, (250, 80))
+
+menu_font = pygame.font.Font("Kenney Future.ttf", 40)
+
 
 # colors
 white = (255, 255, 255)
@@ -80,6 +86,44 @@ class Tile(Enum):
     platform_block = 14
     door = 15
     flat_ladder = 16
+
+
+class Button():
+    def __init__(self, x , y, image, text, font):
+        self.image = image
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+        self.clicked = False
+
+        self.font = font
+        self.text = text
+
+
+    def draw(self):
+        action = False
+
+        pos = pygame.mouse.get_pos() #uses pygame module to get mouse position
+
+        if self.rect.collidepoint(pos):
+            if pygame.mouse.get_pressed()[0] == 1 and self.clicked == False:
+                action = True
+                self.clicked = True
+
+        if pygame.mouse.get_pressed()[0] == 0:
+            self.clicked = False
+
+
+        screen.blit(self.image, self.rect)
+
+        text = self.font.render(self.text, True, (255,255,255))
+        text_rect = text.get_rect(center=self.rect.center)
+        screen.blit(text, text_rect)
+        return action
+
+
+    
+        
 
 class World:
     def __init__(self, data):
@@ -381,6 +425,8 @@ world = World(world_data)
 #player object
 player = Player(100, 512)
 
+game_state = "menu"
+
 rewinding = False
 
 def draw_rewind_bar(screen, player):
@@ -409,6 +455,31 @@ def draw():
     player.draw(screen)
     draw_rewind_bar(screen, player)
     pygame.display.flip()
+
+
+def draw_menu():
+        screen.fill((15,15,20))
+
+        title = menu_font.render("Rewind Run", True, (255, 255, 255))
+        screen.blit(title, (470, 100))
+
+        if start_button.draw():
+            return "game"
+
+        settings_button.draw()
+
+        if exit_button.draw():
+            pygame.quit()
+            sys.exit()
+
+        pygame.display.update()
+
+        return "menu"
+        
+
+start_button = Button(515, 220, button_img, "BEGIN TIMELINE", menu_font)
+settings_button = Button(515, 330, button_img, "SETTINGS", menu_font)
+exit_button = Button(515, 440, button_img, "EXIT", menu_font)
     
 
 
@@ -427,51 +498,36 @@ while True:
                 (event.w, event.h), pygame.RESIZABLE
             )
 
-    keys = pygame.key.get_pressed()
-    rewinding = keys[pygame.K_r] and player.current_time_energy > 10
+    #menu
 
+    if game_state == "menu":
+
+        game_state = draw_menu()
+
+    elif game_state == "game":
+        keys = pygame.key.get_pressed()
+        rewinding = keys[pygame.K_r] and player.current_time_energy > 10
+    
 
     
         
 
-    if rewinding:
-        player.load_state()
+        if rewinding:
+            player.load_state()
 
-        player.current_time_energy -= player.rewind_cost * dt # current energy - rewind cost after each rewind
+            player.current_time_energy -= player.rewind_cost * dt # current energy - rewind cost after each rewind
 
-        player.current_time_energy = max(0, min(player.current_time_energy, player.max_rewind_energy))
-
-        print(round(player.current_time_energy, 1))#TEST 
-
-        if player.current_time_energy <= 10:#'TEST
-                print("Out of energy!") #TEST
+            player.current_time_energy = max(0, min(player.current_time_energy, player.max_rewind_energy))
 
         
-    else:
-        player.handle_input()
-        player.apply_physics(dt, world)
-        player.save_state()
 
-    draw()
+        
+        else:
+            player.handle_input()
+            player.apply_physics(dt, world)
+            player.save_state()
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        draw()
 
 
 
