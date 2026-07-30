@@ -4,7 +4,9 @@ from collections import deque # import deque to store the player's state history
 from enum import Enum
 
 
-pygame.init() 
+pygame.init()
+
+pygame.mouse.set_visible(False) #sets mouse as invisible to allow crosshair to be seen
 
 screen = pygame.display.set_mode((1280, 729), pygame.RESIZABLE) 
 pygame.display.set_caption("Rewind Run") 
@@ -23,8 +25,10 @@ rewind_bar_frame = pygame.image.load('rewind_bar_frame.png')
 #loading ui
 button_img = pygame.image.load("button.png")
 button_img = pygame.transform.scale(button_img, (250, 80))
+cursor_img = pygame.image.load("crosshair_color_b.png")
+cursor_img = pygame.transform.scale(cursor_img, (32, 32))
 
-menu_font = pygame.font.Font("Kenney Future.ttf", 40)
+menu_font = pygame.font.Font("Kenney Future.ttf", 20)
 
 
 # colors
@@ -52,9 +56,9 @@ world_data = [
 [0,0,0,0,0,0,0,0,0,14,14,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,16,0,0,0,0,0,0,0,0,0],
 [0,0,0,0,0,0,0,0,0,0,0,0,0,12,11,11,11,13,0,0,0,0,0,0,0,0,0,0,0,0,0,0,16,0,0,0,0,0,0,0],
 [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,16,0,0,0,0,0,0,0,0,0],
-[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,11,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
 [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,5,7,0,0,0,0,0,0,6,5,5,5,7,0,0,0,0,0,0],
-[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,11,0,0,0,0,0,0,0],
 [6,5,7,0,0,0,0,0,0,0,0,0,0,0,0,6,5,7,0,0,0,0,0,0,0],
 [8,2,3,0,0,0,0,0,0,6,5,7,0,0,0,0,0,0,0,0,0,0,0,0,0],
 [8,2,3,5,5,7,0,0,0,8,2,3,0,0,0,0,0,0,0,0,0,0,0,0,0],
@@ -86,6 +90,7 @@ class Tile(Enum):
     platform_block = 14
     door = 15
     flat_ladder = 16
+   
 
 
 class Button():
@@ -116,7 +121,7 @@ class Button():
 
         screen.blit(self.image, self.rect)
 
-        text = self.font.render(self.text, True, (255,255,255))
+        text = self.font.render(self.text, True, (119, 123, 126))
         text_rect = text.get_rect(center=self.rect.center)
         screen.blit(text, text_rect)
         return action
@@ -147,6 +152,8 @@ class World:
         platform_block = pygame.image.load('platform_block.png')
         door = pygame.image.load('door.png')
         flat_ladder = pygame.image.load('flat_ladder.png')
+        
+        
         
 
 
@@ -287,7 +294,7 @@ class World:
                     tile = (img, img_rect) 
                     self.tile_list.append(tile)
 
-                    
+                                   
 
                 col_count += 1
 
@@ -299,16 +306,36 @@ class World:
             screen.blit(tile[0], tile[1])
                 
             
-    
+    #gameplay
 
 
 class Puzzle_Object:
-    pass
+    def __init__(self, x , y , image):
+        self.image = image
+        self.rect = self.image.get_rect(topleft=(x,y)) # get_rect creates a rectangle and places at (x,y)
+        self.active = False
 
+    def update(self, player):
+        pass
+
+    def draw(self, screen): # draws stored image at rect position
+        if not self.active: # is active variable set to True
+            screen.blit(self.image, self.rect) # if true then put image on screen
 
 
 class Key(Puzzle_Object):
-    pass
+    def __init__(self, x , y, image):
+        super().__init__(x, y, image)
+
+        
+    def update(self, player):
+        keys = pygame.key.get_pressed()
+
+
+        
+        if self.rect.colliderect(player.rect): #if player touches key, active is set to true
+            if keys[pygame.K_e]:
+                self.active = True 
 
 
 class Lever(Puzzle_Object):
@@ -425,6 +452,11 @@ world = World(world_data)
 #player object
 player = Player(100, 512)
 
+key_image = pygame.image.load("key.png")
+key_image = pygame.transform.scale(key_image, (32, 32))
+
+key = Key(480, 160, key_image)
+
 game_state = "menu"
 
 rewinding = False
@@ -439,12 +471,10 @@ def draw_rewind_bar(screen, player):
     width = int((player.current_time_energy / player.max_rewind_energy) * bar_width) #calcs how full rewind bar should be by dividing current energy with max
 
     screen.blit(rewind_bar_frame, (bar_x, bar_y))
+    energy_bar = pygame.Rect(bar_x + 12, bar_y + 8 , width, bar_height)
+    pygame.draw.rect(screen, (0, 255, 255), energy_bar)
 
-    pygame.draw.rect(
-        screen,
-        (0,255,255), #cyan colour
-        (bar_x + 12, bar_y + 8, width, bar_height)
-    )
+                            
 
     
     
@@ -454,6 +484,9 @@ def draw():
     world.draw(screen)
     player.draw(screen)
     draw_rewind_bar(screen, player)
+    key.draw(screen) 
+
+       
     pygame.display.flip()
 
 
@@ -471,6 +504,9 @@ def draw_menu():
         if exit_button.draw():
             pygame.quit()
             sys.exit()
+
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+        screen.blit(cursor_img, (mouse_x - 16, mouse_y - 16))
 
         pygame.display.update()
 
@@ -520,14 +556,18 @@ while True:
             player.current_time_energy = max(0, min(player.current_time_energy, player.max_rewind_energy))
 
         
-
         
         else:
             player.handle_input()
             player.apply_physics(dt, world)
             player.save_state()
+            key.update(player)
 
         draw()
+
+
+
+
 
 
 
