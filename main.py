@@ -8,7 +8,7 @@ pygame.init()
 
 pygame.mouse.set_visible(False) #sets mouse as invisible to allow crosshair to be seen
 
-screen = pygame.display.set_mode((1280, 729), pygame.RESIZABLE) 
+screen = pygame.display.set_mode((1280, 729), pygame.RESIZABLE) # create a resizable window
 pygame.display.set_caption("Rewind Run") 
 
 clock = pygame.time.Clock() #create a clock object to control the frame rate
@@ -51,28 +51,28 @@ world_data = [
 [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
 [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
 [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,12,11,11,13,0,0,0,0,0,0,0],
-[0,15,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,14,14,14,0,0,0,0,0,16,0,0,0,0,0,0,0,0,0],
-[12,11,11,11,11,13,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,16,0,0,0,0,0,0,0,0,0],
-[0,0,0,0,0,0,0,0,0,14,14,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,16,0,0,0,0,0,0,0,0,0],
-[0,0,0,0,0,0,0,0,0,0,0,0,0,12,11,11,11,13,0,0,0,0,0,0,0,0,0,0,0,0,0,0,16,0,0,0,0,0,0,0],
-[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,16,0,0,0,0,0,0,0,0,0],
-[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,11,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,15,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,14,14,14,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[12,11,11,11,11,13,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,14,14,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,12,11,11,11,13,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
 [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,5,7,0,0,0,0,0,0,6,5,5,5,7,0,0,0,0,0,0],
-[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,11,0,0,0,0,0,0,0],
-[6,5,7,0,0,0,0,0,0,0,0,0,0,0,0,6,5,7,0,0,0,0,0,0,0],
-[8,2,3,0,0,0,0,0,0,6,5,7,0,0,0,0,0,0,0,0,0,0,0,0,0],
-[8,2,3,5,5,7,0,0,0,8,2,3,0,0,0,0,0,0,0,0,0,0,0,0,0],
-[8,2,3,2,2,3,0,0,0,8,2,3,0,0,0,0,0,0,0,0,0,0,0,0,0],
-[8,2,3,2,2,3,9,9,9,8,2,3,0,0,0,0,0,0,0,0,0,0,0,0,0],
-[8,2,3,2,2,3,10,10,10,8,2,3,0,0,0,0,0,0,0,0,0,0,0,0,0],
-[6,5,5,5,7,3,10,10,10,8,2,3,2,5,5,5,5,5,5,5,5,5,5,5,5,5,9,9,9,9,5,5,5,5,5,5,5,5,5,7],
-[8,2,3,2,2,3,10,10,10,8,2,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,10,10,10,10,0,0,0,0,0,0,0,0],
-[8,2,3,2,2,3,10,10,10,8,2,3,0,0,0,0,0,0,0,0,0,0,0,0,0],
-[8,2,3,2,2,3,10,10,10,8,2,3,0,0,0,0,0,0,0,0,0,0,0,0,0],
-[8,2,3,2,2,3,10,10,10,8,2,3,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,8,2,2,2,3,0,0,0,0,0,0],
+[6,5,7,0,0,0,0,0,0,0,0,0,0,0,0,6,5,7,0,0,0,0,0,0,0,0,0,0,0,0,0,8,2,2,2,3,0,0,0,0,0,0,0],
+[8,2,3,0,0,0,0,0,0,6,5,7,0,0,0,8,2,3,0,0,0,0,0,0,0,0,0,0,0,0,0,8,2,2,2,3,0,0,0,0,0,0,0],
+[8,2,3,5,5,7,0,0,0,8,2,3,0,0,0,8,2,3,6,5,7,0,0,0,0,0,0,0,0,0,0,8,2,2,2,3,0,0,0,0,0,0,0],
+[8,2,3,2,2,3,0,0,0,8,2,3,0,0,0,0,0,0,8,2,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[8,2,3,2,2,3,9,9,9,8,2,3,0,0,0,0,0,0,8,2,3,0,0,0,0,0,0,12,11,13,0,0,0,0,0,0,0,0,0,0,0,0],
+[8,2,3,2,2,3,10,10,10,8,2,3,0,0,0,0,0,0,8,2,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[6,5,7,5,7,3,10,10,10,8,2,3,0,0,0,5,5,5,5,5,5,5,5,5,5,5,9,9,9,9,5,5,5,5,5,5,5,5,5,7],
+[8,2,3,2,3,3,10,10,10,8,2,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,10,10,10,10,0,0,0,0,0,0,0,0],
+[8,2,3,2,3,3,10,10,10,8,2,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,5,5,5,5],
+[8,2,3,2,3,3,10,10,10,8,2,3,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[8,2,3,2,3,3,10,10,10,8,2,3,5,5,5,5,5,5,5,0,0,0,0,0,0],
 ]
 
-class Tile(Enum):
+class Tile(Enum): # enum class to represent different types
     empty = 0
     industrial_tile = 1
     dirt = 2
@@ -93,29 +93,29 @@ class Tile(Enum):
    
 
 
-class Button():
-    def __init__(self, x , y, image, text, font):
-        self.image = image
+class Button(): 
+    def __init__(self, x , y, image, text, font): 
+        self.image = image # store the image of the button
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
-        self.clicked = False
+        self.clicked = False # store the clicked state
 
         self.font = font
         self.text = text
 
 
     def draw(self):
-        action = False
+        action = False # initialize action to false
 
         pos = pygame.mouse.get_pos() #uses pygame module to get mouse position
 
-        if self.rect.collidepoint(pos):
-            if pygame.mouse.get_pressed()[0] == 1 and self.clicked == False:
+        if self.rect.collidepoint(pos): # checks if mouse is over button
+            if pygame.mouse.get_pressed()[0] == 1 and self.clicked == False: # checks if left mouse button is pressed and button has not been clicked yet
                 action = True
                 self.clicked = True
 
-        if pygame.mouse.get_pressed()[0] == 0:
+        if pygame.mouse.get_pressed()[0] == 0: # checks if left mouse button is released
             self.clicked = False
 
 
@@ -159,7 +159,7 @@ class World:
 
         
 
-        row_count = 0
+        row_count = 0 # initialize row count to 0
 
         for row in data:
             col_count = 0
@@ -169,7 +169,7 @@ class World:
                 if tile == Tile.industrial_tile.value: # links to Tile class 
                     img = pygame.transform.scale(industrial_tile, (tile_size, tile_size)) #scales the  image to fit the tile size
                     img_rect = img.get_rect() #gets the rectangle of the image for positioning
-                    img_rect.x = col_count * tile_size 
+                    img_rect.x = col_count * tile_size # sets the x position of the image rectangle based on the column count and tile size
                     img_rect.y = row_count * tile_size
                     tile = (img, img_rect) 
                     self.tile_list.append(tile) #adds the tile to the tile list
@@ -283,7 +283,7 @@ class World:
                     img_rect = img.get_rect() 
                     img_rect.x = col_count * tile_size 
                     img_rect.y = row_count * tile_size
-                    tile = (img, img_rect) 
+                    tile = (img, img_rect, "door") 
                     self.tile_list.append(tile)
 
                 if tile == Tile.flat_ladder.value:
@@ -303,7 +303,7 @@ class World:
     def draw(self, screen):
 
         for tile in self.tile_list:
-            screen.blit(tile[0], tile[1])
+            screen.blit(tile[0], tile[1]) # draws the image of the tile at the position of the rectangle
                 
             
     #gameplay
@@ -325,7 +325,7 @@ class Puzzle_Object:
 
 class Key(Puzzle_Object):
     def __init__(self, x , y, image):
-        super().__init__(x, y, image)
+        super().__init__(x, y, image) # calls the constructor of the parent class (Puzzle_Object) to initialize the key's position and image
 
         
     def update(self, player):
@@ -335,7 +335,10 @@ class Key(Puzzle_Object):
         
         if self.rect.colliderect(player.rect): #if player touches key, active is set to true
             if keys[pygame.K_e]:
-                self.active = True 
+                self.active = True
+                return True
+
+        return False
 
 
 class Lever(Puzzle_Object):
@@ -353,7 +356,16 @@ class Pressure_Pad(Puzzle_Object):
     pass
 
 
+class Ladder:
+    def __init__(self, x, y , image):
+        self.image = image
+        self.rect = self.image.get_rect(topleft=(x,y))
 
+
+        self.hitbox = pygame.Rect(x, y, self.rect.width, self.rect.height) # creates a hitbox for the ladder
+
+    def draw(self, screen):
+        screen.blit(self.image, self.rect)
 
 
 
@@ -371,6 +383,14 @@ class Player:
         self.rewind_cost = 20
         self.recharge = 10
         self.current_time_energy = self.max_rewind_energy
+        self.climbing = False
+
+
+    def check_ladder(self, ladder):
+
+        if self.rect.colliderect(ladder.hitbox): # checks if the player is colliding with the ladder's hitbox
+            return True
+        return False
         
         
 
@@ -385,14 +405,26 @@ class Player:
         if keys[pygame.K_RIGHT]:
             self.vel.x = movement_speed
 
-        if keys[pygame.K_SPACE] and self.ground:
-            self.vel.y = jump_force
+        if self.climbing:
+            self.vel.y = 0
+
+            if keys[pygame.K_w]:
+                self.vel.y = -200 
+
+            elif keys[pygame.K_s]:
+                self.vel.y = 200
+
+
+        else:
+            if keys[pygame.K_SPACE] and self.ground:
+                self.vel.y = jump_force
         
             
 
     def apply_physics(self, dt, world):
         self.ground = False
-        self.vel.y += gravity * dt  # apply physics to the player (gravity and movement)
+        if not self.climbing:
+            self.vel.y += gravity * dt  # apply physics to the player (gravity and movement)
    
 
     # movement
@@ -402,20 +434,25 @@ class Player:
     # collision with platform
         for tile in world.tile_list:
 
-            if self.rect.colliderect(tile[1]):
+            if self.rect.colliderect(tile[1]): # checks if the player is colliding with the tile's rectangle
                 if self.vel.x > 0:
-                    self.rect.right = tile[1].left
+                    self.rect.right = tile[1].left 
 
                 elif self.vel.x < 0:
-                    self.rect.left = tile[1].right
+                    self.rect.left = tile[1].right 
 
         self.rect.y += int(self.vel.y * dt)
 
         for tile in world.tile_list:
-            if self.rect.colliderect(tile[1]):
+
+            if self.climbing: 
+                continue
+
+
+            if self.rect.colliderect(tile[1]): 
 
                 if self.vel.y > 0:
-                    self.rect.bottom = tile[1].top
+                    self.rect.bottom = tile[1].top 
                     self.vel.y = 0
                     self.ground = True
 
@@ -447,10 +484,14 @@ class Player:
 
 # ground platform object
 world = World(world_data)
-
-
+#ladder
+flat_ladder = pygame.image.load('flat_ladder.png')
+flat_ladder = pygame.transform.scale(flat_ladder, (32, 250))
 #player object
 player = Player(100, 512)
+ladder = Ladder(1050, 60, flat_ladder)
+
+
 
 key_image = pygame.image.load("key.png")
 key_image = pygame.transform.scale(key_image, (32, 32))
@@ -458,6 +499,7 @@ key_image = pygame.transform.scale(key_image, (32, 32))
 key = Key(480, 160, key_image)
 
 game_state = "menu"
+has_key = False
 
 rewinding = False
 
@@ -474,17 +516,40 @@ def draw_rewind_bar(screen, player):
     energy_bar = pygame.Rect(bar_x + 12, bar_y + 8 , width, bar_height)
     pygame.draw.rect(screen, (0, 255, 255), energy_bar)
 
-                            
 
-    
+def check_door():
+    global game_state
+    keys = pygame.key.get_pressed()
+    for tile in world.tile_list:
+        if len(tile) > 2 and tile[2] == "door":
+            # Makes a slightly bigger area around the door
+            door_area = tile[1].inflate(40, 40)
+            if player.rect.colliderect(door_area):
+                if has_key and keys[pygame.K_e]:
+                    game_state = "complete"
+                     
+
     
 
 def draw():
     screen.blit(level_1_background, (0, 0))
     world.draw(screen)
+    ladder.draw(screen)
     player.draw(screen)
     draw_rewind_bar(screen, player)
-    key.draw(screen) 
+    key.draw(screen)
+
+    if has_key:
+        for tile in world.tile_list:
+            if len(tile) > 2 and tile[2] == "door":
+                door_area = tile[1].inflate(40, 40)
+                if player.rect.colliderect(door_area):
+                    font = pygame.font.Font("Kenney Future.ttf", 18)
+                    text = font.render(
+                        "PRESS E TO UNLOCK", True, white)
+                    text_rect = text.get_rect(center=(tile[1].centerx + 60, tile[1].top - 20))
+                    screen.blit(text, text_rect)
+
 
        
     pygame.display.flip()
@@ -512,11 +577,25 @@ def draw_menu():
 
         return "menu"
         
+def draw_level_complete():
+    screen.fill((15, 15, 20))
 
+    title_font = pygame.font.Font("Kenney Future.ttf", 50)
+    text_font = pygame.font.Font("Kenney Future.ttf", 25)
+
+    title = title_font.render("LEVEL COMPLETE", True, white)
+    title_rect = title.get_rect(center=(640, 280))
+    screen.blit(title, title_rect)
+
+    message = text_font.render("You escaped with the key!", True, grey)
+    message_rect = message.get_rect(center=(640, 350))
+    screen.blit(message, message_rect)
+
+    pygame.display.flip()
+    
 start_button = Button(515, 220, button_img, "BEGIN TIMELINE", menu_font)
 settings_button = Button(515, 330, button_img, "SETTINGS", menu_font)
 exit_button = Button(515, 440, button_img, "EXIT", menu_font)
-    
 
 
 
@@ -558,18 +637,23 @@ while True:
         
         
         else:
+            player.climbing = player.check_ladder(ladder)
+            if player.climbing and player.rect.bottom <= ladder.rect.top + 5: # if player is climbing and the bottom of the player is above the top of the ladder, set the player's bottom to the top of the ladder
+                player.climbing = False
             player.handle_input()
             player.apply_physics(dt, world)
             player.save_state()
-            key.update(player)
+            if key.update(player):
+                has_key = True
+
+            check_door()
 
         draw()
 
+    elif game_state == "complete":
+        draw_level_complete()
 
-
-
-
-
+        
 
 
 
