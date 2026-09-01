@@ -2,9 +2,12 @@ import pygame
 import sys # import sys module to handle system exit
 from collections import deque # import deque to store the player's state history
 from enum import Enum
+from pygame import mixer 
 
-
+pygame.mixer.pre_init(44100, -16, 2, 512)
 pygame.init()
+mixer.init()
+
 
 pygame.mouse.set_visible(False) #sets mouse as invisible to allow crosshair to be seen
 
@@ -12,9 +15,21 @@ screen = pygame.display.set_mode((1280, 729), pygame.RESIZABLE) # create a resiz
 pygame.display.set_caption("Rewind Run") 
 
 clock = pygame.time.Clock() #create a clock object to control the frame rate
+#----------------sounds-------------------------------------------------------------
 
 
+#main menu music
+mixer.music.load("main_music.wav")
+mixer.music.set_volume(2)
 
+
+#jump sound effect
+jump_sfx = mixer.Sound("jump.wav")
+jump_sfx.set_volume(0.5)
+
+mixer.music.play(-1)
+
+#-------------------------------------background--------------------------------------
 #loading background 
 
 level_1_background = pygame.image.load('level_1_background.png')
@@ -46,7 +61,7 @@ jump_force = -500
 
 tile_size = 32
 
-
+#---------------------------------World Data--------------------------------------------------------------------
 world_data = [
 [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
 [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
@@ -91,7 +106,7 @@ class Tile(Enum): # enum class to represent different types
     door = 15
     flat_ladder = 16
    
-
+#---------------------------------------Menu Classes-----------------------
 
 class Button(): 
     def __init__(self, x , y, image, text, font): 
@@ -128,7 +143,7 @@ class Button():
 
 
     
-        
+#---------------------------------World Class------------------------------------        
 
 class World:
     def __init__(self, data):
@@ -350,7 +365,81 @@ class Lever(Puzzle_Object):
 class Door(Puzzle_Object):
     pass
 
+class Enemy(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        pygame.sprite.Sprite.__init__(self)
 
+        self.images_right = []
+        self.images_left = []
+
+        for num in range(1, 5):
+            img = pygame.image.load("enemy_run_" + str(num) + ".png")
+            img = pygame.transform.scale(img, (128, 128))
+
+            self.images_right.append(img)
+            self.images_left.append(pygame.transform.flip(img, True, False))
+
+        self.index = 0
+        self.counter = 0
+        self.facing_right = True
+        self.image = self.images_right[self.index]
+
+        self.rect = self.image.get_rect(topleft = (x, y))
+
+        self.move_direction = 1
+        self.move_speed = 100
+        self.move_counter = 0
+        self.move_distance = 150
+
+
+    
+
+    def update(self, player):
+        self.rect.x += self.move_speed * self.move_direction * dt
+
+        self.move_counter += self.move_speed * self.move_direction * dt
+
+        
+        if abs(self.move_counter) >= self.move_distance:
+            self.move_direction *= -1
+            self.move_counter = 0
+
+       
+        if self.move_direction > 0:
+            self.facing_right = True
+        else:
+            self.facing_right = False
+
+        # animate enemy
+        self.counter += 1
+
+        if self.counter > 7:
+            self.counter = 0
+            self.index += 1
+
+            if self.index >= len(self.images_right):
+                self.index = 0
+
+        if self.facing_right:
+            self.image = self.images_right[self.index]
+        else:
+            self.image = self.images_left[self.index]
+
+        # Check collision with player
+        if self.rect.colliderect(player.rect):
+            return True
+
+        return False
+
+
+    def draw(self, screen):
+        screen.blit(self.image, self.rect)
+        
+
+    
+
+
+    
     
 class Pressure_Pad(Puzzle_Object):
     pass
@@ -367,14 +456,62 @@ class Ladder:
     def draw(self, screen):
         screen.blit(self.image, self.rect)
 
+class Spikes:
+    def __init__(self, x, y, image):
+        self.image = image
+        self.rect = self.image.get_rect(topleft=(x, y))
 
 
+    def update(self, player):
+        if self.rect.colliderect(player.rect):
+            return True
+
+        return False
+
+    def draw(self, screen):
+        screen.blit(self.image, self.rect)
+    
+#-------------------------------------------Player------------------------------------
 
 class Player:
     def __init__(self, x, y):
-        #loading player sprite
-        self.image = pygame.image.load("sci-fi player_idle.png")
-        self.image = pygame.transform.scale(self.image, (32, 32))
+        self.images_right = []
+        self.images_left = []
+
+        for num in range(1, 3):
+            img_right = pygame.image.load("player_run_" + str(num) + ".png")
+            img_right = pygame.transform.scale(img_right, (40, 80))
+            img_left = pygame.transform.flip(img_right, True, False)
+
+            self.images_right.append(img_right)
+            self.images_left.append(img_left)
+
+
+        self.images_jump = []
+
+        for num in range(1, 4):
+            img_jump = pygame.image.load("player_jump_" + str(num) + ".png")
+            img_jump = pygame.transform.scale(img_jump, (40, 80))
+
+            self.images_jump.append(img_jump)
+
+        
+
+ 
+
+
+        self.index = 0
+        self.counter = 0
+
+        self.jump_index = 0
+        self.jump_counter = 0
+        self.facing_right = True 
+
+        self.image = self.images_right[self.index]
+
+
+
+            
         self.__history = deque(maxlen=300) #size of queue 
         self.vel = pygame.Vector2() # create a vector to represent the player's velocity
         self.rect = self.image.get_rect(topleft=(x, y)) #places image as a rectangle in pygame
@@ -385,6 +522,50 @@ class Player:
         self.current_time_energy = self.max_rewind_energy
         self.climbing = False
 
+    def update_animation(self):
+        if not self.ground:
+            self.jump_counter += 1
+
+
+            if self.jump_counter > 3:
+                self.jump_counter = 0
+                self.jump_index += 1
+
+                if self.jump_index >= len(self.images_jump):
+                    self.jump_index = len(self.images_jump) -1
+
+            self.image = self.images_jump[self.jump_index]
+
+            if not self.facing_right:
+                self.image = pygame.transform.flip(self.image, True, False)
+
+            return
+
+
+        if self.vel.x != 0:
+
+            self.counter += 1
+
+            if self.counter > 7:
+                self.counter = 0
+                self.index += 1
+
+                if self.index >= len(self.images_right):
+                    self.index = 0
+
+            # Moving right
+            if self.vel.x > 0:
+                self.image = self.images_right[self.index]
+
+            # Moving left
+            else:
+                self.image = self.images_left[self.index]
+
+        else:
+            self.index = 0
+            self.jump_index = 0
+            self.jump_counter = 0
+            self.image = self.images_right[0]
 
     def check_ladder(self, ladder):
 
@@ -392,7 +573,13 @@ class Player:
             return True
         return False
         
-        
+    def reset(self, x, y):
+        self.rect.topleft = (x, y )
+        self.vel = pygame.Vector2()
+        self.ground = False
+        self.climbing = False
+        self.current_time_energy = self.max_rewind_energy
+        self.__history.clear()
 
 
     def handle_input(self):
@@ -401,9 +588,13 @@ class Player:
 
         if keys[pygame.K_LEFT]:
             self.vel.x = -movement_speed
+            self.facing_right = False
+
             
-        if keys[pygame.K_RIGHT]:
+        elif keys[pygame.K_RIGHT]:
             self.vel.x = movement_speed
+            self.facing_right = True
+            
 
         if self.climbing:
             self.vel.y = 0
@@ -418,6 +609,7 @@ class Player:
         else:
             if keys[pygame.K_SPACE] and self.ground:
                 self.vel.y = jump_force
+                jump_sfx.play()
         
             
 
@@ -487,10 +679,19 @@ world = World(world_data)
 #ladder
 flat_ladder = pygame.image.load('flat_ladder.png')
 flat_ladder = pygame.transform.scale(flat_ladder, (32, 250))
+
+spikes = pygame.image.load("spikes.png")
+spikes = pygame.transform.scale(spikes, (32, 32))
+
+
+
 #player object
 player = Player(100, 512)
+enemy = Enemy(500, 440)
 ladder = Ladder(1050, 60, flat_ladder)
-
+spike_1 = Spikes(400, 650, spikes)
+spike_2 = Spikes(780, 75, spikes)
+spike_3 = Spikes(320, 365, spikes)
 
 
 key_image = pygame.image.load("key.png")
@@ -535,9 +736,14 @@ def draw():
     screen.blit(level_1_background, (0, 0))
     world.draw(screen)
     ladder.draw(screen)
+    enemy.draw(screen)
     player.draw(screen)
     draw_rewind_bar(screen, player)
     key.draw(screen)
+    spike_1.draw(screen)
+    spike_2.draw(screen)
+    spike_3.draw(screen)
+
 
     if has_key:
         for tile in world.tile_list:
@@ -562,6 +768,7 @@ def draw_menu():
         screen.blit(title, (470, 100))
 
         if start_button.draw():
+            mixer.music.stop()
             return "game"
 
         settings_button.draw()
@@ -592,11 +799,46 @@ def draw_level_complete():
     screen.blit(message, message_rect)
 
     pygame.display.flip()
+
+
+def draw_game_over():
+    pygame.mouse.set_visible(True)
+
+    screen.fill((15, 15, 20))
+    
+
+    title_font = pygame.font.Font("Kenney Future.ttf", 50)
+    text_font = pygame.font.Font("Kenney Future.ttf", 25)
+
+
+    title = title_font.render("GAME OVER", True, red)
+    title_rect = title.get_rect(center=(640, 250))
+    screen.blit(title, title_rect)
+
+    message = text_font.render("You were killed!", True, grey)
+    message_rect = message.get_rect(center=(640, 320))
+    screen.blit(message, message_rect)
+
+    if restart_button.draw():
+        reset()
+
+    pygame.display.flip()
+
+def reset():
+    global player
+    global key
+    global has_key
+    global game_state
+
+    player.reset(100, 512)
+
+    has_key = False
+    game_state = "game"
     
 start_button = Button(515, 220, button_img, "BEGIN TIMELINE", menu_font)
 settings_button = Button(515, 330, button_img, "SETTINGS", menu_font)
 exit_button = Button(515, 440, button_img, "EXIT", menu_font)
-
+restart_button = Button(515, 400, button_img, "RESTART", menu_font)
 
 
 # Game loop
@@ -643,17 +885,52 @@ while True:
             player.handle_input()
             player.apply_physics(dt, world)
             player.save_state()
+            player.update_animation()
             if key.update(player):
                 has_key = True
 
             check_door()
+
+            if spike_1.update(player):
+                game_state = "gameover"
+
+            if spike_2.update(player):
+                game_state = "gameover"
+
+            if spike_3.update(player):
+                game_state = "gameover"
+                
+
+            if enemy.update(player):
+                game_state = "gameover"
 
         draw()
 
     elif game_state == "complete":
         draw_level_complete()
 
+    elif game_state == "gameover":
+        draw_game_over()
+
         
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
