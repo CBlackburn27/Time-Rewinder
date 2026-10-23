@@ -7,6 +7,22 @@ from pygame import mixer
 pygame.mixer.pre_init(44100, -16, 2, 512)
 pygame.init()
 mixer.init()
+pygame.joystick.init()
+
+controller = None
+
+if pygame.joystick.get_count() > 0:
+    controller = pygame.joystick.Joystick(0)
+    controller.init()
+   
+    
+    
+
+
+
+
+
+
 
 
 pygame.mouse.set_visible(False) #sets mouse as invisible to allow crosshair to be seen
@@ -15,7 +31,7 @@ screen = pygame.display.set_mode((1280, 729), pygame.RESIZABLE) # create a resiz
 pygame.display.set_caption("Rewind Run") 
 
 clock = pygame.time.Clock() #create a clock object to control the frame rate
-#----------------sounds-------------------------------------------------------------
+#----------------sounds--------------------------------------------------------------------------------
 
 
 #main menu music
@@ -29,7 +45,7 @@ jump_sfx.set_volume(0.5)
 
 mixer.music.play(-1)
 
-#-------------------------------------background--------------------------------------
+#-------------------------------------background--------------------------------------------------------
 #loading background 
 
 level_1_background = pygame.image.load('level_1_background.png')
@@ -61,8 +77,9 @@ jump_force = -500
 
 tile_size = 32
 
+
 #---------------------------------World Data--------------------------------------------------------------------
-world_data = [
+world_data=[
 [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
 [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
 [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,12,11,11,13,0,0,0,0,0,0,0],
@@ -86,6 +103,37 @@ world_data = [
 [8,2,3,2,3,3,10,10,10,8,2,3,0,0,0,0,0,0,0,0,0,0,0,0,0],
 [8,2,3,2,3,3,10,10,10,8,2,3,5,5,5,5,5,5,5,0,0,0,0,0,0],
 ]
+
+level_1_data = world_data
+
+#level 2 map data 
+# Level 2 map data
+level_2_data = [
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,5,5,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,5,5,5,5,5],
+[0,0,0,0,0,0,0,0,5,5,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,5,5,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,5,5,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,5,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[5,5,5,5,5,0,0,0,5,5,5,5,0,0,0,0,5,5,5,5,5,0,0,0,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,15,5,5],
+[14,14,14,5,5,5,0,0,0,0,14,14,14,14,14,14,14,14,14,14,14,9,9,9,9,14,14,14,14,14,14,14,14,14,14,9,9,14,14,14,14,14],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+]
+
+    
 
 class Tile(Enum): # enum class to represent different types
     empty = 0
@@ -356,6 +404,10 @@ class Key(Puzzle_Object):
         return False
 
 
+
+
+
+
 class Lever(Puzzle_Object):
     pass
 
@@ -386,26 +438,26 @@ class Enemy(pygame.sprite.Sprite):
 
         self.rect = self.image.get_rect(topleft = (x, y))
 
-        self.move_direction = 1
-        self.move_speed = 100
-        self.move_counter = 0
-        self.move_distance = 150
+        self.__move_direction = 1
+        self.__move_speed = 100
+        self.__move_counter = 0
+        self.__move_distance = 150
 
 
     
 
     def update(self, player):
-        self.rect.x += self.move_speed * self.move_direction * dt
+        self.rect.x += self.__move_speed * self.__move_direction * dt
 
-        self.move_counter += self.move_speed * self.move_direction * dt
+        self.__move_counter += self.__move_speed * self.__move_direction * dt
 
         
-        if abs(self.move_counter) >= self.move_distance:
-            self.move_direction *= -1
-            self.move_counter = 0
+        if abs(self.__move_counter) >= self.__move_distance:
+            self.__move_direction *= -1
+            self.__move_counter = 0
 
        
-        if self.move_direction > 0:
+        if self.__move_direction > 0:
             self.facing_right = True
         else:
             self.facing_right = False
@@ -527,7 +579,7 @@ class Player:
             self.jump_counter += 1
 
 
-            if self.jump_counter > 3:
+            if self.jump_counter >= 3:
                 self.jump_counter = 0
                 self.jump_index += 1
 
@@ -581,17 +633,33 @@ class Player:
         self.current_time_energy = self.max_rewind_energy
         self.__history.clear()
 
+            
+            
+
 
     def handle_input(self):
         keys = pygame.key.get_pressed()
         self.vel.x = 0
 
-        if keys[pygame.K_LEFT]:
+        #controller movements
+        controller_x = 0
+
+        if controller:
+            controller_x = controller.get_axis(0)
+
+            if abs(controller_x) < 0.2:
+                controller_x = 0
+
+
+
+    
+
+        if keys[pygame.K_LEFT] or controller_x < -0.2:
             self.vel.x = -movement_speed
             self.facing_right = False
 
             
-        elif keys[pygame.K_RIGHT]:
+        elif keys[pygame.K_RIGHT] or controller_x > 0.2:
             self.vel.x = movement_speed
             self.facing_right = True
             
@@ -605,9 +673,26 @@ class Player:
             elif keys[pygame.K_s]:
                 self.vel.y = 200
 
+            elif controller_x == 0 and controller:
+                controller_y = controller.get_axis(1)
+
+                if controller_y < -0.2:
+                    self.vel.y = -200
+
+                elif controller_y > 0.2:
+                    self.vel.y= 200
+                    
+
 
         else:
-            if keys[pygame.K_SPACE] and self.ground:
+
+
+            controller_jump = False
+
+            if controller:
+                controller_jump = controller.get_button(0)
+                
+            if (keys[pygame.K_SPACE] or controller_jump) and self.ground:
                 self.vel.y = jump_force
                 jump_sfx.play()
         
@@ -675,7 +760,8 @@ class Player:
 
 
 # ground platform object
-world = World(world_data)
+current_level = 1
+world = World(level_1_data)
 #ladder
 flat_ladder = pygame.image.load('flat_ladder.png')
 flat_ladder = pygame.transform.scale(flat_ladder, (32, 250))
@@ -834,6 +920,45 @@ def reset():
 
     has_key = False
     game_state = "game"
+
+
+def load(level):
+        global world
+        global player
+        global ladder
+        global enemy
+        global spike_1
+        global spike_2
+        global spike_3
+        global key
+        global has_key
+
+        has_key = False
+
+        if level == 1:
+            world = World(level_1_data)
+            player.reset(100, 512)
+            enemy = Enemy(500, 440)
+            ladder = Ladder(1050, 60, flat_ladder)
+            spike_1 = Spikes(400, 650, spikes)
+            spike_2 = Spikes(780, 75, spikes)
+            spike_3 = Spikes(320, 365, spikes)
+
+            key = Key(900, 200, key_image)
+
+        elif level == 2:
+            world = World(level_2_data)
+            player.reset(100, 512)
+            enemy = Enemy(600, 440)
+            ladder = Ladder(1050, 60, flat_ladder)
+            spike_1 = Spikes(450, 650, spikes)
+            spike_2 = Spikes(800, 300, spikes)
+            spike_3 = Spikes(320, 365, spikes)
+
+            key = Key(900, 200, key_image)
+
+
+            
     
 start_button = Button(515, 220, button_img, "BEGIN TIMELINE", menu_font)
 settings_button = Button(515, 330, button_img, "SETTINGS", menu_font)
@@ -863,7 +988,7 @@ while True:
 
     elif game_state == "game":
         keys = pygame.key.get_pressed()
-        rewinding = keys[pygame.K_r] and player.current_time_energy > 10
+        rewinding = keys[pygame.K_r] and player.current_time_energy >= 10
     
 
     
@@ -906,26 +1031,20 @@ while True:
 
         draw()
 
-    elif game_state == "complete":
-        draw_level_complete()
-
     elif game_state == "gameover":
         draw_game_over()
 
+    elif game_state == "complete":
+        keys = pygame.key.get_pressed()
+
+        if current_level == 1 and keys[pygame.K_RETURN]:
+            current_level = 2
+            load(2)
+            game_state = "game"
+
+        draw_level_complete()
+
         
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
