@@ -14,15 +14,6 @@ controller = None
 if pygame.joystick.get_count() > 0:
     controller = pygame.joystick.Joystick(0)
     controller.init()
-   
-    
-    
-
-
-
-
-
-
 
 
 pygame.mouse.set_visible(False) #sets mouse as invisible to allow crosshair to be seen
@@ -34,17 +25,50 @@ clock = pygame.time.Clock() #create a clock object to control the frame rate
 #----------------sounds--------------------------------------------------------------------------------
 
 
-#main menu music
-mixer.music.load("main_music.wav")
-mixer.music.set_volume(2)
-
-
 #jump sound effect
 jump_sfx = mixer.Sound("jump.wav")
 jump_sfx.set_volume(0.5)
 
-mixer.music.play(-1)
 
+
+class Music:
+    def __init__(self):
+        self.__music_vol = 0.5
+        self.__sound_vol = 0.5
+
+        self.__muted = False
+
+    def load_music(self, filename): #loads music file 
+        mixer.music.load("main_music.wav")
+
+    def set_music_vol(self, volume):
+        self.__music_vol = volume
+        self.__update_music_vol()
+
+    def __update_music_vol(self):
+        if self.__muted:
+            mixer.music.set_volume(0)
+        else:
+            mixer.music.set_volume(self.__music_vol)
+
+    def toggle_music(self):  #toggles music on and off
+        self.__muted = not self.__muted
+        self.__update_music_vol()
+
+    def get_muted(self):
+        return self.__muted #return whether music is muted
+
+    def get_music_vol(self):
+        return self.__music_vol #returns current music volume 
+    
+        
+
+        
+#create music object
+music = Music()
+music.load_music("main_music.wav")
+mixer.music.play(-1)
+        
 #-------------------------------------background--------------------------------------------------------
 #loading background 
 
@@ -62,17 +86,13 @@ cursor_img = pygame.transform.scale(cursor_img, (32, 32))
 menu_font = pygame.font.Font("Kenney Future.ttf", 20)
 
 
-# colors
-white = (255, 255, 255)
-blue = (50, 100, 255)
-grey = (119, 123, 126)
-red = (255, 80, 80)
 
 
 # physics
 gravity = 1200
 movement_speed = 300
 jump_force = -500
+
 
 
 tile_size = 32
@@ -168,7 +188,7 @@ class Button():
         self.text = text
 
 
-    def draw(self):
+    def draw(self, settings):
         action = False # initialize action to false
 
         pos = pygame.mouse.get_pos() #uses pygame module to get mouse position
@@ -184,12 +204,44 @@ class Button():
 
         screen.blit(self.image, self.rect)
 
-        text = self.font.render(self.text, True, (119, 123, 126))
+        text = self.font.render(self.text, True, settings.get_colour("red"))
         text_rect = text.get_rect(center=self.rect.center)
         screen.blit(text, text_rect)
         return action
 
 
+class Slider:
+    def __init__(self, x, y, width):
+        self.__rect = pygame.Rect(x, y, width, 8) #slider position + size 
+        self.__dragging = False
+
+    def draw(self, screen, settings, value):
+        if pygame.mouse.get_pressed()[0]:
+            if self.__rect.inflate(0, 25).collidepoint(pygame.mouse.get_pos()):
+                self.__dragging = True
+
+            else:
+                self.__dragging = False
+
+        if self.__dragging:
+            mouse_x = pygame.mouse.get_pos()[0]
+            value = (mouse_x - self.__rect.x) / self.__rect.width
+            value = max(0, min(1, value))
+
+        #draw slider background
+            pygame.draw.rect(screen, settings.get_colour("grey"), self.__rect)
+
+        #draw filled section
+
+        filled_width = int(self.__rect.width * value)
+        filled_rect = pygame.Rect(self.__rect.x, self.__rect.y, filled_width, self.__rect.height)
+        pygame.draw.rect(screen, settings.get_colour("blue"), filled_rect)
+
+        # Draw the slider handle
+        handle_x = self.__rect.x + int(self.__rect.width * value)
+        pygame.draw.circle(screen, settings.get_colour("white"), (handle_x, self.__rect.centery), 12)
+
+        return value   
     
 #---------------------------------World Class------------------------------------        
 
@@ -513,9 +565,11 @@ class Spikes:
         self.image = image
         self.rect = self.image.get_rect(topleft=(x, y))
 
+        self.__hitbox = self.rect.inflate(-16, -12)
+
 
     def update(self, player):
-        if self.rect.colliderect(player.rect):
+        if self.__hitbox.colliderect(player.rect):
             return True
 
         return False
@@ -714,30 +768,36 @@ class Player:
             if self.rect.colliderect(tile[1]): # checks if the player is colliding with the tile's rectangle
                 if self.vel.x > 0:
                     self.rect.right = tile[1].left 
-
                 elif self.vel.x < 0:
                     self.rect.left = tile[1].right 
 
         self.rect.y += int(self.vel.y * dt)
+        
 
         for tile in world.tile_list:
+            tile_rect = tile[1]
 
             if self.climbing: 
                 continue
 
 
-            if self.rect.colliderect(tile[1]): 
+            if self.rect.colliderect(tile_rect): 
 
                 if self.vel.y > 0:
-                    self.rect.bottom = tile[1].top 
+                    self.rect.bottom = tile_rect.top 
                     self.vel.y = 0
                     self.ground = True
 
                 elif self.vel.y < 0:
-
-                    self.rect.top = tile[1].bottom
+                    self.rect.top = tile_rect.bottom
                     self.vel.y = 0
-                
+
+        
+
+        
+
+
+
                 
    
 #rewinding
@@ -758,7 +818,32 @@ class Player:
     def draw(self, screen):
         screen.blit(self.image, self.rect)
 
+class RewindTrail:
+    def __init__(self):
+        self.__ghosts = []
 
+
+    def add_ghost(self, image, rect):
+        ghost_image = image.copy() #copies image so it can fade independently
+        ghost_image.set_alpha(150) #sets starting transparency
+
+        self.__ghosts.append([ghost_image, rect.copy(), 150]) #stores copied image, position and transparency in a list
+
+
+    def draw(self, screen):
+        for ghost in self.__ghosts[:]:
+            image, rect, alpha = ghost
+
+            image.set_alpha(alpha)
+            screen.blit(image, rect)
+
+            ghost[2] -= 6 #gradually reduces transparency to create fading effect
+
+            if ghost[2] <= 0:
+                self.__ghosts.remove(ghost)
+
+
+            
 # ground platform object
 current_level = 1
 world = World(level_1_data)
@@ -773,6 +858,7 @@ spikes = pygame.transform.scale(spikes, (32, 32))
 
 #player object
 player = Player(100, 512)
+rewind_trail = RewindTrail()
 enemy = Enemy(500, 440)
 ladder = Ladder(1050, 60, flat_ladder)
 spike_1 = Spikes(400, 650, spikes)
@@ -818,11 +904,12 @@ def check_door():
 
     
 
-def draw():
+def draw(settings):
     screen.blit(level_1_background, (0, 0))
     world.draw(screen)
     ladder.draw(screen)
     enemy.draw(screen)
+    rewind_trail.draw(screen)
     player.draw(screen)
     draw_rewind_bar(screen, player)
     key.draw(screen)
@@ -837,29 +924,198 @@ def draw():
                 door_area = tile[1].inflate(40, 40)
                 if player.rect.colliderect(door_area):
                     font = pygame.font.Font("Kenney Future.ttf", 18)
-                    text = font.render(
-                        "PRESS E TO UNLOCK", True, white)
+                    text = font.render("PRESS E TO UNLOCK", True, settings.get_colour("white"))
                     text_rect = text.get_rect(center=(tile[1].centerx + 60, tile[1].top - 20))
                     screen.blit(text, text_rect)
 
 
        
     pygame.display.flip()
+    
+COLOURS = {
+    'normal': {
+        'black':(0, 0, 0),
+        'white':(255, 255, 255),
+        'blue':(50,100,255),
+        'grey':(119, 123, 126),
+        'red':(255, 80,80)
+    },
+    'protanopia':{ #red-green colour blindness
+        'black': (0, 0, 0),
+        'white': (255, 255, 255),
+        'red': (227, 66, 52), #vermillion
+        'blue': (50, 100, 255),
+        'grey': (119, 123, 126)
+    },
+
+    'tritanopia': { #blue-yellow colour blindness
+        'black': (0, 0, 0),
+        'white': (255, 255, 255),
+        'grey': ( 203, 213, 224),
+        'red': (227, 66, 52),
+        'blue': (128, 0, 128)
+    },
+}
+    
+
+    
+class Settings:
+    def __init__(self):
+        self.current_colour_mode = "normal"
+
+    def set_colour_mode(self, mode):
+
+        if mode in COLOURS:  #if selected mode is in the colours dictionary e.g protanopia then change current colour mode to that selected mode. 
+            self.current_colour_mode = mode
+
+    def get_colour_mode(self):
+        return self.current_colour_mode
+
+    def get_colour(self, colour):
+
+        return COLOURS[self.current_colour_mode][colour]
+
+settings = Settings()
+
+def draw_general_settings(settings):
+    pygame.mouse.set_visible(True)
+    screen.fill(settings.get_colour("black"))
+
+    title = menu_font.render("GENERAL SETTINGS", True, settings.get_colour("white"))
+    title_rect = title.get_rect(center=(640, 100))
+    screen.blit(title, title_rect)
+
+    if controls_button.draw(settings):
+        return "controls"
+
+    if audio_settings_button.draw(settings):
+        return "audio_settings"
 
 
-def draw_menu():
+    if accessibility_button.draw(settings):
+        return "settings"
+
+    if general_back_button.draw(settings):
+        return "menu"
+
+    pygame.display.update()
+    return "general_settings"
+
+def draw_controls(settings):
+    pygame.mouse.set_visible(True)
+    screen.fill(settings.get_colour("black"))
+
+    title = menu_font.render("CONTROLS", True, settings.get_colour("white"))
+    screen.blit(title, title.get_rect(center=(640, 100)))
+
+    if back_button.draw(settings):
+        return "general_settings"
+
+    pygame.display.update()
+
+    return "controls"
+
+    
+def draw_audio_settings(settings):
+    pygame.mouse.set_visible(True)
+    screen.fill(settings.get_colour("black"))
+
+    title = menu_font.render("AUDIO SETTINGS", True, settings.get_colour("white"))
+    screen.blit(title, title.get_rect(center=(640, 100)))
+
+    pygame.draw.rect(screen, (35, 35, 45), (250, 170, 780, 350))
+    pygame.draw.rect(screen, settings.get_colour("grey"), (250, 170, 780, 350), 2)
+
+     #music volume labels
+
+    volume_label = menu_font.render("MUSIC VOLUME", True, settings.get_colour("red"))
+    screen.blit(volume_label, volume_label.get_rect(center=(640, 150)))
+
+     #updating the volume using the slider
+
+    volume = music_slider.draw(screen, settings, music.get_music_vol())
+    music.set_music_vol(volume)
+
+     #displaying current volume
+
+    volume_text = menu_font.render(str(int(volume * 100)) + "%", True, settings.get_colour("red"))
+    screen.blit(volume_text, volume_text.get_rect(center=(640, 360)))
+
+     #updating the music text button
+
+    if music.get_muted():
+        mute_button.text = "UNMUTE MUSIC"
+    else:
+        mute_button.text = "MUTE MUSIC"
+
+    #toggle music
+
+    if mute_button.draw(settings):
+        music.toggle_music()
+
+    #back button
+
+    if back_button.draw(settings):
+        return "general_settings"
+
+    pygame.display.update()
+    return "audio_settings"
+                                
+     
+
+    
+
+def draw_settings(settings):
+    pygame.mouse.set_visible(True)
+    screen.fill(settings.get_colour("black"))
+
+    title = menu_font.render("ACCESSIBILITY SETTINGS", True, settings.get_colour("white"))
+    title_rect = title.get_rect(center=(640, 100))
+    screen.blit(title, title_rect)
+
+
+    
+#change colour mode when selected button is clicked 
+    if normal_button.draw(settings):
+        settings.set_colour_mode("normal")
+
+    if protanopia_button.draw(settings):
+        settings.set_colour_mode("protanopia")
+
+    if tritanopia_button.draw(settings):
+        settings.set_colour_mode("tritanopia")
+
+    selected_text = menu_font.render("CURRENT MODE: " + settings.get_colour_mode().upper(), True, settings.get_colour("white"))
+
+    selected_rect = selected_text.get_rect(center=(640, 160))
+    screen.blit(selected_text, selected_rect)
+
+    if back_button.draw(settings):
+        return "general_settings"
+
+    pygame.display.update()
+
+    return "settings"
+
+                                     
+
+
+def draw_menu(settings):
         screen.fill((15,15,20))
 
-        title = menu_font.render("Rewind Run", True, (255, 255, 255))
+        title = menu_font.render("Rewind Run", True, COLOURS[settings.current_colour_mode]["white"])
         screen.blit(title, (470, 100))
 
-        if start_button.draw():
+        if start_button.draw(settings):
             mixer.music.stop()
             return "game"
 
-        settings_button.draw()
+       
+        if settings_button.draw(settings):
+            return "general_settings"
+            
 
-        if exit_button.draw():
+        if exit_button.draw(settings):
             pygame.quit()
             sys.exit()
 
@@ -869,43 +1125,47 @@ def draw_menu():
         pygame.display.update()
 
         return "menu"
+
+
+    
         
-def draw_level_complete():
-    screen.fill((15, 15, 20))
+def draw_level_complete(settings):
+    screen.fill(settings.get_colour("grey"))
+    
 
     title_font = pygame.font.Font("Kenney Future.ttf", 50)
     text_font = pygame.font.Font("Kenney Future.ttf", 25)
 
-    title = title_font.render("LEVEL COMPLETE", True, white)
+    title = title_font.render("LEVEL COMPLETE", True, settings.get_colour("white"))
     title_rect = title.get_rect(center=(640, 280))
     screen.blit(title, title_rect)
 
-    message = text_font.render("You escaped with the key!", True, grey)
+    message = text_font.render("You escaped with the key!", True, settings.get_colour("grey"))
     message_rect = message.get_rect(center=(640, 350))
     screen.blit(message, message_rect)
 
     pygame.display.flip()
 
 
-def draw_game_over():
+def draw_game_over(settings):
     pygame.mouse.set_visible(True)
 
-    screen.fill((15, 15, 20))
+    screen.fill(settings.get_colour("black"))
     
 
     title_font = pygame.font.Font("Kenney Future.ttf", 50)
     text_font = pygame.font.Font("Kenney Future.ttf", 25)
 
 
-    title = title_font.render("GAME OVER", True, red)
+    title = title_font.render("GAME OVER", True, COLOURS[settings.current_colour_mode]["red"])
     title_rect = title.get_rect(center=(640, 250))
     screen.blit(title, title_rect)
 
-    message = text_font.render("You were killed!", True, grey)
+    message = text_font.render("You were killed!", True, COLOURS[settings.current_colour_mode]["grey"])
     message_rect = message.get_rect(center=(640, 320))
     screen.blit(message, message_rect)
 
-    if restart_button.draw():
+    if restart_button.draw(settings):
         reset()
 
     pygame.display.flip()
@@ -958,59 +1218,89 @@ def load(level):
             key = Key(900, 200, key_image)
 
 
-            
-    
+
+
+#button objects
 start_button = Button(515, 220, button_img, "BEGIN TIMELINE", menu_font)
 settings_button = Button(515, 330, button_img, "SETTINGS", menu_font)
 exit_button = Button(515, 440, button_img, "EXIT", menu_font)
 restart_button = Button(515, 400, button_img, "RESTART", menu_font)
+normal_button = Button(515, 200, button_img, "NORMAL", menu_font)
+protanopia_button = Button(515, 300, button_img, "PROTANOPIA", menu_font)
+tritanopia_button = Button(515, 400, button_img, "TRITANOPIA", menu_font)
+back_button = Button(515, 520, button_img, "BACK", menu_font)
+
+# General settings buttons
+controls_button = Button(515, 180, button_img, "CONTROLS", menu_font)
+audio_settings_button = Button(515, 280, button_img, "AUDIO SETTINGS", menu_font)
+accessibility_button = Button(515, 380, button_img, "ACCESSIBILITY", menu_font)
+general_back_button = Button(515, 480, button_img, "BACK", menu_font)
+
+music_slider = Slider(440, 310, 400)
+mute_button = Button(515, 410, button_img, "MUTE MUSIC", menu_font)
+
 
 
 # Game loop
+
+# Game loop
 while True:
-    dt = clock.tick(60) / 1000 # get the time delta in seconds
+    dt = clock.tick(60) / 1000
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
-            sys.exit() #exit the program if the user closes the window
+            sys.exit()
 
         elif event.type == pygame.VIDEORESIZE:
             screen = pygame.display.set_mode(
                 (event.w, event.h), pygame.RESIZABLE
             )
 
-    #menu
-
+    # menu
     if game_state == "menu":
+        game_state = draw_menu(settings)
 
-        game_state = draw_menu()
+    # general settings
+    elif game_state == "general_settings":
+        game_state = draw_general_settings(settings)
 
+    # controls
+    elif game_state == "controls":
+        game_state = draw_controls(settings)
+
+    # audio
+    elif game_state == "audio_settings":
+        game_state = draw_audio_settings(settings)
+
+    # accessibility
+    elif game_state == "settings":
+        game_state = draw_settings(settings)
+
+    # gameplay
     elif game_state == "game":
+
         keys = pygame.key.get_pressed()
         rewinding = keys[pygame.K_r] and player.current_time_energy >= 10
-    
-
-    
-        
 
         if rewinding:
+            rewind_trail.add_ghost(player.image, player.rect)
             player.load_state()
 
-            player.current_time_energy -= player.rewind_cost * dt # current energy - rewind cost after each rewind
-
+            player.current_time_energy -= player.rewind_cost * dt
             player.current_time_energy = max(0, min(player.current_time_energy, player.max_rewind_energy))
 
-        
-        
         else:
             player.climbing = player.check_ladder(ladder)
-            if player.climbing and player.rect.bottom <= ladder.rect.top + 5: # if player is climbing and the bottom of the player is above the top of the ladder, set the player's bottom to the top of the ladder
+
+            if player.climbing and player.rect.bottom <= ladder.rect.top + 5:
                 player.climbing = False
+
             player.handle_input()
             player.apply_physics(dt, world)
             player.save_state()
             player.update_animation()
+
             if key.update(player):
                 has_key = True
 
@@ -1024,16 +1314,17 @@ while True:
 
             if spike_3.update(player):
                 game_state = "gameover"
-                
 
             if enemy.update(player):
                 game_state = "gameover"
 
-        draw()
+        draw(settings)
 
+    # GAME OVER
     elif game_state == "gameover":
-        draw_game_over()
+        draw_game_over(settings)
 
+    # LEVEL COMPLETE
     elif game_state == "complete":
         keys = pygame.key.get_pressed()
 
@@ -1042,7 +1333,7 @@ while True:
             load(2)
             game_state = "game"
 
-        draw_level_complete()
+        draw_level_complete(settings)
 
         
 
